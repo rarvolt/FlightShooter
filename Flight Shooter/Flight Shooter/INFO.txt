@@ -1,0 +1,40 @@
+Siadasz za sterami samolotu odrzutowego, a Twoim zadaniem jest niszczenie pojawiaj¹cych siê celów.
+Œwiat (miasto) jest generowany losowo. Cele s¹ generowanie losowo. Nowa pozycja po rozbiciu jest ustawiana losowo. KOCHAM LICZBY LOSOWE ;D
+
+Sterowanie:
+Góra/Dó³   --- skierowanie nosa maszyny w dó³/górê
+Lewo/Prawo --- przechy³ na lewe/prawe skrzyd³o
+Q/E        --- obrót maszyny w lewo/prawo
+Spacja     --- strza³ (przytrzymuj¹c sprzelamy 10 pocisków na sekundê)
+F2         --- Zrobienie screenshoota
+Escape     --- wyjœcie z gry
+
+Dodatkowo na pasku tytu³u s¹ wyœwietlane informacje:
+gameSpeed  --- aktualna szybkoœæ gry
+targets    --- liczba celów
+cityWidth  --- szerokoœæ miasta
+cityLength --- d³ugoœæ miasta
+fps        --- liczba gererowanych klatek na sekundê
+
+=== gameSpeed ===
+Wartoœæ gameSpeed na pocz¹tku ma wartoœæ 1.0
+Po zniszczeniu celu jest mno¿ona przez 1.05
+Po rozbiciu statku jest dzielona przez 1.1
+przyk³ad: zniszczyliœmy 3 cele, rozbiliœmy siê, zniszczyliœmy 5 celi, rozbiliœmy sie, zniszczyliœmy 7 celi
+1.0      * 1.05 = 1.05
+1.05     * 1.05 = 1.1025
+1.1025   * 1.05 = 1.157625
+1.157625 / 1.1  = 1.052386
+1.052386 * 1.05 = 1.105005
+1.105005 * 1.05 = 1.160256
+1.160256 * 1.05 = 1.218269
+1.218269 * 1.05 = 1.279182
+1.279182 * 1.05 = 1.343141
+1.343141 / 1.1  = 1.221037
+1.221037 * 1.05 = 1.282089
+1.282089 * 1.05 = 1.346194
+1.346194 * 1.05 = 1.413503
+1.413503 * 1.05 = 1.484179
+1.484179 * 1.05 = 1.558388
+1.558388 * 1.05 = 1.636307
+1.636307 * 1.05 = 1.718122

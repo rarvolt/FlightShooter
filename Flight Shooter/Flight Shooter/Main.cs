@@ -1,6 +1,7 @@
 using System;
+using System.IO;
 using System.Collections.Generic;
-using System.Linq;
+using System.Runtime.InteropServices;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
@@ -13,20 +14,14 @@ namespace Flight_Shooter
 {
     public class Main : Microsoft.Xna.Framework.Game
     {
-        struct Bullet
-        {
-            public Vector3 position;
-            public Quaternion rotation;
-        }
-
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
         GraphicsDevice device;
         Effect effect;
+        RenderTarget2D ss;
         Texture2D sceneryTexture;
         Texture2D bulletTexture;
         Texture2D[] skyboxTextures;
-        Model xwingModel;
         Model targetModel;
         Model skyboxModel;
         VertexBuffer cityVertexBuffer;
@@ -35,26 +30,28 @@ namespace Flight_Shooter
         int tmpFps = 0;
         int counter = 0;
 
-        double lastBulletTime = 0;
         float gameSpeed = 1.0f;
         const int minTargets = 50;
         int maxTargets = 0;
         int[,] floorPlan;
         int[] buildingHeights = new int[] { 0, 2, 2, 6, 5, 4 };
-        Vector3 lightDirection = new Vector3(3, -2, 5);
-        Vector3 xwingPosition = new Vector3(2, 6, -2);
+        
         Vector3 cameraPosition;
         Vector3 cameraUpDirection;
-        Quaternion xwingRotation = Quaternion.Identity;
         Quaternion cameraRotation = Quaternion.Identity;
         List<BoundingSphere> targetList = new List<BoundingSphere>();
-        List<Bullet> bulletList = new List<Bullet>();
 
         BoundingBox[] buildingBoundingBoxes;
         BoundingBox completeCityBox;
 
-        Matrix viewMatrix;
-        Matrix projectionMatrix;
+        public static Vector3 lightDirection = new Vector3(3, -2, 5);
+        public static Matrix viewMatrix;
+        public static Matrix projectionMatrix;
+
+        KeyboardProcesser keyboardProcesser = new KeyboardProcesser();
+
+        public static bool exit = false;
+        public static bool screenShoot = false;
 
         enum CollisionType
         {
@@ -72,8 +69,8 @@ namespace Flight_Shooter
 
         protected override void Initialize()
         {
-            graphics.PreferredBackBufferWidth = 800;
-            graphics.PreferredBackBufferHeight = 600;
+            graphics.PreferredBackBufferWidth = 1024;
+            graphics.PreferredBackBufferHeight = 720;
             graphics.IsFullScreen = false;
             graphics.ApplyChanges();
             Window.Title = "Flight Shooter by RARvolt";
@@ -95,10 +92,12 @@ namespace Flight_Shooter
 
             device = graphics.GraphicsDevice;
 
+            ss = new RenderTarget2D(device, device.Viewport.Width, device.Viewport.Height, false, SurfaceFormat.Color, DepthFormat.Depth24Stencil8);
+
             effect = Content.Load<Effect>("effects");
             sceneryTexture = Content.Load<Texture2D>("texturemap");
             bulletTexture = Content.Load<Texture2D>("bullet");
-            xwingModel = LoadModel("xwing");
+            Xwing.model = LoadModel("xwing");
             targetModel = LoadModel("target");
             skyboxModel = LoadModel("skybox", out skyboxTextures);
 
@@ -254,7 +253,7 @@ namespace Flight_Shooter
             int cityLength = floorPlan.GetLength(1);
 
             Random random = new Random();
-
+            BoundingSphere newTarget;
 
             while (targetList.Count < maxTargets)
             {
@@ -263,7 +262,10 @@ namespace Flight_Shooter
                 float y = (float)random.Next(2000) / 1000f + 1;
                 float radius = (float)random.Next(1000) / 1000f * 0.2f + 0.01f;
 
-                BoundingSphere newTarget = new BoundingSphere(new Vector3(x, y, z), radius);
+                newTarget = new BoundingSphere(new Vector3(x, y, z), radius);
+
+                if (CheckCollision(newTarget) == CollisionType.Target)
+                    continue;
 
                 if (CheckCollision(newTarget) == CollisionType.None)
                     targetList.Add(newTarget);
@@ -304,18 +306,20 @@ namespace Flight_Shooter
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
                 this.Exit();
+            if (exit)
+                this.Exit();
 
-            ProcessKeyboard(gameTime);
+            keyboardProcesser.ProcessKeyboard(gameTime, gameSpeed);
 
             float moveSpeed = gameTime.ElapsedGameTime.Milliseconds / 500.0f * gameSpeed;
-            MoveForward(ref xwingPosition, xwingRotation, moveSpeed);
+            MoveForward(ref Xwing.position, Xwing.rotation, moveSpeed);
 
-            BoundingSphere xwingSphere = new BoundingSphere(xwingPosition, 0.04f);
+            BoundingSphere xwingSphere = new BoundingSphere(Xwing.position, 0.04f);
             if (CheckCollision(xwingSphere) != CollisionType.None)
             {
                 Random random = new Random();
-                xwingPosition = new Vector3(random.Next(1, floorPlan.GetLength(0)), 6, -random.Next(1, floorPlan.GetLength(1)));
-                xwingRotation = Quaternion.Identity;
+                Xwing.position = new Vector3(random.Next(1, floorPlan.GetLength(0)), 6, -random.Next(1, floorPlan.GetLength(1)));
+                Xwing.rotation = Quaternion.Identity;
                 gameSpeed /= 1.1f;
             }
 
@@ -343,16 +347,16 @@ namespace Flight_Shooter
 
         private void UpdateCamera()
         {
-            cameraRotation = Quaternion.Lerp(cameraRotation, xwingRotation, 0.08f);
+            cameraRotation = Quaternion.Lerp(cameraRotation, Xwing.rotation, 0.08f);
 
             Vector3 campos = new Vector3(0, 0.1f, 0.6f);
             campos = Vector3.Transform(campos, Matrix.CreateFromQuaternion(cameraRotation));
-            campos += xwingPosition;
+            campos += Xwing.position;
 
             Vector3 camup = new Vector3(0, 1, 0);
             camup = Vector3.Transform(camup, Matrix.CreateFromQuaternion(cameraRotation));
 
-            viewMatrix = Matrix.CreateLookAt(campos, xwingPosition, camup);
+            viewMatrix = Matrix.CreateLookAt(campos, Xwing.position, camup);
             projectionMatrix = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, device.Viewport.AspectRatio, 0.2f, 500.0f);
 
             cameraPosition = campos;
@@ -365,72 +369,23 @@ namespace Flight_Shooter
             BoundingSphere bulletSphere;
             CollisionType colType;
 
-            for (int i = 0; i < bulletList.Count; i++)
+            for (int i = 0; i < Bullet.list.Count; i++)
             {
-                currentBullet = bulletList[i];
+                currentBullet = Bullet.list[i];
                 MoveForward(ref currentBullet.position, currentBullet.rotation, moveSpeed * 2.0f);
-                bulletList[i] = currentBullet;
+                Bullet.list[i] = currentBullet;
 
                 bulletSphere = new BoundingSphere(currentBullet.position, 0.05f);
                 colType = CheckCollision(bulletSphere);
                 if (colType != CollisionType.None)
                 {
-                    bulletList.RemoveAt(i);
+                    Bullet.list.RemoveAt(i);
                     i--;
 
                     if (colType == CollisionType.Target)
                         gameSpeed *= 1.05f;
                 }
             }
-        }
-
-        private void ProcessKeyboard(GameTime gameTime)
-        {
-            float leftRightRot = 0;
-            float upDownRot = 0;
-            float horizontalRot = 0;
-
-            float turningSpeed = (float)gameTime.ElapsedGameTime.TotalMilliseconds / 1000.0f;
-            turningSpeed *= 1.6f * gameSpeed;
-
-            KeyboardState keys = Keyboard.GetState();
-            if (keys.IsKeyDown(Keys.Escape))
-                this.Exit();
-            if (keys.IsKeyDown(Keys.Right))
-                leftRightRot += turningSpeed;
-            if (keys.IsKeyDown(Keys.Left))
-                leftRightRot -= turningSpeed;
-            if (keys.IsKeyDown(Keys.Down))
-                upDownRot += turningSpeed;
-            if (keys.IsKeyDown(Keys.Up))
-                upDownRot -= turningSpeed;
-            if (keys.IsKeyDown(Keys.Q))
-                horizontalRot += turningSpeed / 1.5f;
-            if (keys.IsKeyDown(Keys.E))
-                horizontalRot -= turningSpeed / 1.5f;
-            if (keys.IsKeyDown(Keys.Space))
-            {
-                double currentTime = gameTime.TotalGameTime.TotalMilliseconds;
-                if (currentTime - lastBulletTime > 100)
-                {
-                    Bullet newBullet = new Bullet();
-                    newBullet.position = xwingPosition;
-                    newBullet.rotation = xwingRotation;
-                    bulletList.Add(newBullet);
-
-                    lastBulletTime = currentTime;
-                }
-            }
-            if (keys.IsKeyDown(Keys.F2))
-            {
-
-            }
-
-            Quaternion additionalRot =
-                Quaternion.CreateFromAxisAngle(new Vector3(0, 0, -1), leftRightRot) *
-                Quaternion.CreateFromAxisAngle(new Vector3(1, 0, 0), upDownRot) *
-                Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), horizontalRot);
-            xwingRotation *= additionalRot;
         }
 
         private void MoveForward(ref Vector3 position, Quaternion rotationQuat, float speed)
@@ -441,8 +396,11 @@ namespace Flight_Shooter
         private CollisionType CheckCollision(BoundingSphere sphere)
         {
             for (int i = 0; i < buildingBoundingBoxes.Length; i++)
+            {
+
                 if (buildingBoundingBoxes[i].Contains(sphere) != ContainmentType.Disjoint)
                     return CollisionType.Building;
+            }
 
             if (completeCityBox.Contains(sphere) != ContainmentType.Contains)
                 return CollisionType.Boundary;
@@ -465,16 +423,42 @@ namespace Flight_Shooter
         protected override void Draw(GameTime gameTime)
         {
             device.Clear(ClearOptions.Target | ClearOptions.DepthBuffer, Color.DarkSlateBlue, 1.0f, 0);
+            if (screenShoot)
+            {
+                device.SetRenderTarget(ss);
+            }
 
             DrawSkybox();
             DrawCity();
-            DrawModel();
+            Xwing.Draw();
             DrawTargets();
             DrawBullets();
-
             tmpFps++;
 
             base.Draw(gameTime);
+
+            if (screenShoot)
+            {
+                device.SetRenderTarget(null);
+                bool saved = false;
+                int i = 0;
+                while (!saved)
+                {
+                    if (!Directory.Exists(@"Screenshoots"))
+                        Directory.CreateDirectory(@"Screenshoots");
+                    string path = @"Screenshoots\ss" + i.ToString() + ".png";
+                    if (!File.Exists(path))
+                    {
+                        FileStream fs = new FileStream(path, FileMode.OpenOrCreate);
+                        ss.SaveAsPng(fs, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
+                        fs.Close();
+                        saved = true;
+                    }
+                    else
+                        i++;
+                }
+                screenShoot = false;
+            }
         }
 
         private void DrawCity()
@@ -495,28 +479,6 @@ namespace Flight_Shooter
                 device.SetVertexBuffer(cityVertexBuffer);
                 device.SamplerStates[0] = _clamp;
                 device.DrawPrimitives(PrimitiveType.TriangleList, 0, cityVertexBuffer.VertexCount / 3);
-            }
-        }
-
-        private void DrawModel()
-        {
-            Matrix worldMatrix = Matrix.CreateScale(0.0005f, 0.0005f, 0.0005f) * Matrix.CreateRotationY(MathHelper.Pi) * Matrix.CreateFromQuaternion(xwingRotation) * Matrix.CreateTranslation(xwingPosition);
-
-            Matrix[] xwingTransforms = new Matrix[xwingModel.Bones.Count];
-            xwingModel.CopyAbsoluteBoneTransformsTo(xwingTransforms);
-            foreach (ModelMesh mesh in xwingModel.Meshes)
-            {
-                foreach (Effect currentEffect in mesh.Effects)
-                {
-                    currentEffect.CurrentTechnique = currentEffect.Techniques["Colored"];
-                    currentEffect.Parameters["xWorld"].SetValue(xwingTransforms[mesh.ParentBone.Index] * worldMatrix);
-                    currentEffect.Parameters["xView"].SetValue(viewMatrix);
-                    currentEffect.Parameters["xProjection"].SetValue(projectionMatrix);
-                    currentEffect.Parameters["xEnableLighting"].SetValue(true);
-                    currentEffect.Parameters["xLightDirection"].SetValue(lightDirection);
-                    currentEffect.Parameters["xAmbient"].SetValue(0.5f);
-                }
-                mesh.Draw();
             }
         }
 
@@ -550,12 +512,12 @@ namespace Flight_Shooter
 
         private void DrawBullets()
         {
-            if (bulletList.Count > 0)
+            if (Bullet.list.Count > 0)
             {
-                VertexPositionTexture[] bulletVertices = new VertexPositionTexture[bulletList.Count * 6];
+                VertexPositionTexture[] bulletVertices = new VertexPositionTexture[Bullet.list.Count * 6];
                 Vector3 center;
                 int i = 0;
-                foreach (Bullet currentBullet in bulletList)
+                foreach (Bullet currentBullet in Bullet.list)
                 {
                     center = currentBullet.position;
 
@@ -582,7 +544,7 @@ namespace Flight_Shooter
                 {
                     pass.Apply();
 
-                    device.DrawUserPrimitives<VertexPositionTexture>(PrimitiveType.TriangleList, bulletVertices, 0, bulletList.Count * 2);
+                    device.DrawUserPrimitives<VertexPositionTexture>(PrimitiveType.TriangleList, bulletVertices, 0, Bullet.list.Count * 2);
                 }
                 device.BlendState = BlendState.Opaque;
             }
@@ -610,7 +572,7 @@ namespace Flight_Shooter
                 {
                     worldMatrix =
                         skyboxTransforms[mesh.ParentBone.Index] *
-                        Matrix.CreateTranslation(xwingPosition);
+                        Matrix.CreateTranslation(Xwing.position);
                     currentEffect.CurrentTechnique = currentEffect.Techniques["Textured"];
                     currentEffect.Parameters["xWorld"].SetValue(worldMatrix);
                     currentEffect.Parameters["xView"].SetValue(viewMatrix);
