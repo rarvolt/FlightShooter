@@ -7,6 +7,7 @@ Lewo/Prawo --- przechy³ na lewe/prawe skrzyd³o
 Q/E        --- obrót maszyny w lewo/prawo
 Spacja     --- strza³ (przytrzymuj¹c sprzelamy 10 pocisków na sekundê)
 F2         --- Zrobienie screenshoota
+F11        --- Prze³¹czenie pe³nego ekranu
 Escape     --- wyjœcie z gry
 
 Dodatkowo na pasku tytu³u s¹ wyœwietlane informacje:

@@ -5,9 +5,10 @@ using Microsoft.Xna.Framework.Input;
 
 namespace Flight_Shooter
 {
-    public class KeyboardProcesser
+    public class KeyboardProcessor
     {
-        bool F2p = false;
+        private bool F2p = false;
+        private bool F11p = false;
 
         public void ProcessKeyboard(GameTime gameTime, float gameSpeed)
         {
@@ -53,6 +54,13 @@ namespace Flight_Shooter
             }
             if (keys.IsKeyUp(Keys.F2) && F2p)
                 F2p = false;
+            if (keys.IsKeyDown(Keys.F11) && !F11p)
+            {
+                F11p = true;
+                Main.fullscreenFlag = true;
+            }
+            if (keys.IsKeyUp(Keys.F11) && F11p)
+                F11p = false;
 
             Quaternion additionalRot =
                 Quaternion.CreateFromAxisAngle(new Vector3(0, 0, -1), leftRightRot) *
