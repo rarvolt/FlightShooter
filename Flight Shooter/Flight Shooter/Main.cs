@@ -11,7 +11,7 @@ using Microsoft.Xna.Framework.Media;
 
 namespace Flight_Shooter
 {
-    public class Game1 : Microsoft.Xna.Framework.Game
+    public class Main : Microsoft.Xna.Framework.Game
     {
         struct Bullet
         {
@@ -64,7 +64,7 @@ namespace Flight_Shooter
             Target
         }
 
-        public Game1()
+        public Main()
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
@@ -420,6 +420,10 @@ namespace Flight_Shooter
 
                     lastBulletTime = currentTime;
                 }
+            }
+            if (keys.IsKeyDown(Keys.F2))
+            {
+
             }
 
             Quaternion additionalRot =

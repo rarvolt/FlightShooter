@@ -1,0 +1,10 @@
+Siadasz za sterami samolotu odrzutowego, a Twoim zadaniem jest niszczenie pojawiaj¹cych siê celów.
+Ka¿dy zniszczony cel zwiêksza szybkoœæ gry 1.05 raza, a zniszczenie samolotu zmniejsza j¹ 1.1 raza.
+Œwiat (miasto) jest generowany losowo. Cele s¹ generowanie losowo. Nowa pozycja po rozbiciu jest ustawiana losowo. KOCHAM LICZBY LOSOWE ;D
+
+Sterowanie:
+Góra/Dó³   --- skierowanie nosa maszyny w dó³/górê
+Lewo/Prawo --- przechy³ na lewe/prawe skrzyd³o
+Q/E        --- obrót maszyny w lewo/prawo
+Spacja     --- strza³ (przytrzymuj¹c sprzelamy 10 pocisków na sekundê)
+Escape     --- wyjœcie z gry
