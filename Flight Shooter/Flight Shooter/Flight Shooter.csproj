@@ -110,6 +110,7 @@
     <Compile Include="Bullet.cs" />
     <Compile Include="City.cs" />
     <Compile Include="KeyboardProcessor.cs" />
+    <Compile Include="MouseProcessor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Main.cs" />

@@ -2,13 +2,14 @@ Siadasz za sterami samolotu odrzutowego, a Twoim zadaniem jest niszczenie pojawi
 Œwiat (miasto) jest generowany losowo. Cele s¹ generowanie losowo. Nowa pozycja po rozbiciu jest ustawiana losowo. KOCHAM LICZBY LOSOWE ;D
 
 Sterowanie:
-Góra/Dó³   --- skierowanie nosa maszyny w dó³/górê
-Lewo/Prawo --- przechy³ na lewe/prawe skrzyd³o
-Q/E        --- obrót maszyny w lewo/prawo
-Spacja     --- strza³ (przytrzymuj¹c sprzelamy 10 pocisków na sekundê)
-F2         --- Zrobienie screenshoota
-F11        --- Prze³¹czenie pe³nego ekranu
-Escape     --- wyjœcie z gry
+Góra/Dó³     --- skierowanie nosa maszyny w dó³/górê
+Lewo/Prawo   --- przechy³ na lewe/prawe skrzyd³o
+Ruch Myszki  --- oba powy¿sze
+Q/E          --- obrót maszyny w lewo/prawo
+Spacja / LPM --- strza³ (przytrzymuj¹c sprzelamy 10 pocisków na sekundê)
+F2           --- Zrobienie screenshoota
+F11          --- Prze³¹czenie pe³nego ekranu
+Escape       --- wyjœcie z gry
 
 Dodatkowo na pasku tytu³u s¹ wyœwietlane informacje:
 gameSpeed  --- aktualna szybkoœæ gry

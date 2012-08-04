@@ -42,6 +42,7 @@ namespace Flight_Shooter
         public static Matrix projectionMatrix;
 
         KeyboardProcessor keyboardProcessor;
+        MouseProcessor mouseProcessor;
         City city;
 
         public static bool exit = false;
@@ -65,6 +66,9 @@ namespace Flight_Shooter
 
         protected override void Initialize()
         {
+            Console.Out.WriteLine("=== Flight Shooter by RARvolt ===");
+            Console.Out.WriteLine("Initializing...");
+
             graphics.PreferredBackBufferWidth = 800;
             graphics.PreferredBackBufferHeight = 600;
             graphics.IsFullScreen = false;
@@ -76,16 +80,21 @@ namespace Flight_Shooter
                 AddressU = TextureAddressMode.Clamp,
                 AddressV = TextureAddressMode.Clamp
             };
-
+            
             lightDirection.Normalize();
 
             keyboardProcessor = new KeyboardProcessor();
+            mouseProcessor = new MouseProcessor();
 
             base.Initialize();
+
+            Console.Out.WriteLine("Initializing done.");
         }
 
         protected override void LoadContent()
         {
+            Console.Out.WriteLine("Loading Content...");
+
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
             device = graphics.GraphicsDevice;
@@ -103,6 +112,8 @@ namespace Flight_Shooter
             Random random = new Random();
             maxTargets = random.Next(minTargets, (int)Math.Sqrt(city.floorPlan.GetLength(0) * city.floorPlan.GetLength(1)) * city.floorPlan.GetLength(1) / 2);
             AddTargets();
+
+            Console.Out.WriteLine("Loading Content done.");
         }
 
         private void AddTargets()
@@ -168,6 +179,7 @@ namespace Flight_Shooter
                 this.Exit();
 
             keyboardProcessor.ProcessKeyboard(gameTime, gameSpeed);
+            mouseProcessor.ProcessMouse(gameTime, gameSpeed);
 
             float moveSpeed = gameTime.ElapsedGameTime.Milliseconds / 500.0f * gameSpeed;
             MoveForward(ref Xwing.position, Xwing.rotation, moveSpeed);
